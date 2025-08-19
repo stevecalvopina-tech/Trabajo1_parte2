@@ -24,6 +24,22 @@ CHINESE_SIGNS = [
     "Caballo", "Cabra", "Mono", "Gallo", "Perro", "Cerdo"
 ]
 
+# Jugadores famosos por signo (ejemplos)
+FAMOUS_PLAYERS = {
+    "Capricornio": "Cristiano Ronaldo",
+    "Acuario": "Neymar Jr.",
+    "Piscis": "David Beckham",
+    "Aries": "Ronaldinho",
+    "Tauro": "Iker Casillas",
+    "Géminis": "Lionel Messi",
+    "Cáncer": "Paulo Dybala",
+    "Leo": "Thierry Henry",
+    "Virgo": "Antoine Griezmann",
+    "Libra": "Zlatan Ibrahimović",
+    "Escorpio": "Diego Maradona",
+    "Sagitario": "Kylian Mbappé",
+}
+
 
 def zodiac_for(month: int, day: int):
     for nombre, ((m1, d1), (m2, d2)) in SIGNOS:
@@ -56,11 +72,14 @@ def zodiac():
     sign, rango = zodiac_for(dt.month, dt.day)
     chinese_sign = chinese_zodiac(dt.year)
 
+    # Buscar jugador famoso
+    famous_player = FAMOUS_PLAYERS.get(sign, "Jugador desconocido")
+
     return jsonify({
-        "date": dt.isoformat(),
-        "western_sign": sign,
-        "western_range": rango,
-        "chinese_sign": chinese_sign
+        "fecha": dt.isoformat(),
+        "signo_occidental": sign,
+        "signo_chino": chinese_sign,
+        "futbolista_parecido": famous_player
     })
 
 
@@ -72,4 +91,4 @@ def health():
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=8000, debug=True)
 
-# curl -X POST http://localhost:8000/api/zodiac -H "Content-Type: application/json" -d "{\"date\":\"1987-01-11\"}"
+    # curl -X POST http://localhost:8000/api/zodiac -H "Content-Type: application/json" -d "{\"date\":\"2001-01-06\"}"

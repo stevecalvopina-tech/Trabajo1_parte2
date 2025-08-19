@@ -1,0 +1,75 @@
+from datetime import datetime
+from flask import Flask, request, jsonify
+
+app = Flask(__name__)
+
+SIGNOS = [
+    ("Capricornio", ((12, 22), (12, 31))),
+    ("Acuario", ((1, 20), (2, 18))),
+    ("Piscis", ((2, 19), (3, 20))),
+    ("Aries", ((3, 21), (4, 19))),
+    ("Tauro", ((4, 20), (5, 20))),
+    ("Géminis", ((5, 21), (6, 20))),
+    ("Cáncer", ((6, 21), (7, 22))),
+    ("Leo", ((7, 23), (8, 22))),
+    ("Virgo", ((8, 23), (9, 22))),
+    ("Libra", ((9, 23), (10, 22))),
+    ("Escorpio", ((10, 23), (11, 21))),
+    ("Sagitario", ((11, 22), (12, 21))),
+    ("Capricornio", ((1, 1), (1, 19)))  # tramo de enero
+]
+
+CHINESE_SIGNS = [
+    "Rata", "Buey", "Tigre", "Conejo", "Dragón", "Serpiente",
+    "Caballo", "Cabra", "Mono", "Gallo", "Perro", "Cerdo"
+]
+
+
+def zodiac_for(month: int, day: int):
+    for nombre, ((m1, d1), (m2, d2)) in SIGNOS:
+        # Caso dentro del mismo mes
+        if m1 == m2 and m1 == month and d1 <= day <= d2:
+            return nombre, f"{m1:02d}-{d1:02d} — {m2:02d}-{d2:02d}"
+        # Caso que cruza meses
+        elif (month == m1 and day >= d1) or (month == m2 and day <= d2):
+            return nombre, f"{m1:02d}-{d1:02d} — {m2:02d}-{d2:02d}"
+    return "Desconocido", "--"
+
+
+def chinese_zodiac(year: int):
+    base_year = 2020  # Rata
+    index = (year - base_year) % 12
+    return CHINESE_SIGNS[index]
+
+
+@app.route("/api/zodiac", methods=["POST"])
+def zodiac():
+    data = request.get_json()
+    if not data or "date" not in data:
+        return jsonify({"error": "Debes enviar un campo 'date' en formato YYYY-MM-DD."}), 400
+
+    try:
+        dt = datetime.strptime(data["date"], "%Y-%m-%d").date()
+    except ValueError:
+        return jsonify({"error": "Formato de fecha inválido. Usa YYYY-MM-DD."}), 400
+
+    sign, rango = zodiac_for(dt.month, dt.day)
+    chinese_sign = chinese_zodiac(dt.year)
+
+    return jsonify({
+        "date": dt.isoformat(),
+        "western_sign": sign,
+        "western_range": rango,
+        "chinese_sign": chinese_sign
+    })
+
+
+@app.route("/health", methods=["GET"])
+def health():
+    return jsonify({"status": "ok"})
+
+
+if __name__ == "__main__":
+    app.run(host="0.0.0.0", port=8000, debug=True)
+
+
